@@ -1,0 +1,372 @@
+import requests, json, datetime
+
+
+def lambda_handler(event, context):
+    # TODO implement
+# This is to login to DPD and generate the geoSession
+
+    headers = {'Authorization': 'Basic ####Password######',
+               'Content-Type': 'application/json'}
+
+    api_url = 'https://api.dpd.co.uk/user/?action=login'
+
+    response = requests.post(api_url, headers=headers)
+
+    response_json = response.json()
+
+    geoSession = response_json['data']['geoSession']
+
+    def get_account_info():
+        if response.status_code == 200:
+            print("Here's your info: ", geoSession)
+
+            return (response_json['data']['geoSession'])
+        else:
+            print("login failed ")
+# Login complete
+
+# Here I am making some variables and doing some formatting for the next step
+
+    Service = event["body-json"]["service"]
+    date = datetime.datetime.strptime(event["body-json"]["date"], '%d-%b-%Y').strftime('%d/%m/%Y')
+    date2 = datetime.datetime.strptime(event["body-json"]["date"], '%d-%b-%Y').strftime('%Y-%m-%d')
+    number_str = str(event["body-json"]["Mobile"])
+    phone = number_str.zfill(11)
+
+# - Here we have the Json payload. We will use 3 different payloads depending on the service required. Delivery, collection or swap-it.
+
+    if Service == 'Swap':
+        payload = {
+            "jobId": None,
+            "collectionOnDelivery": True,
+            "invoice": None,
+            "collectionDate": date,
+            "consolidate": None,
+            "consignment": [
+                {
+                    "consignmentNumber": None,
+                    "consignmentRef": None,
+                    "parcel": [],
+                    "collectionDetails": {
+                        "contactDetails": {
+                            "contactName": "##########",
+                            "telephone": "##########"
+                        },
+                        "address": {
+                            "organisation": "##########",
+                            "countryCode": "##########",
+                            "postcode": "##########",
+                            "street": "##########",
+                            "locality": "##########",
+                            "town": "##########",
+                            "county": "##########"
+
+                        }
+                    },
+                    "deliveryDetails": {
+                        "contactDetails": {
+                            "contactName": event["body-json"]["name"],
+                            "telephone": phone
+                        },
+                        "address": {
+                            "organisation": ".",
+                            "countryCode": "GB",
+                            "postcode": event["body-json"]["postcode"],
+                            "street": event["body-json"]["street"],
+                            "locality": event["body-json"]["localiy"],
+                            "town": event["body-json"]["town"]
+                        },
+                        "notificationDetails": {
+                            "email": event["body-json"]["email"],
+                            "mobile": phone
+                        }
+                    },
+                    "networkCode": "1^42",
+                    "numberOfParcels": 1,
+                    "totalWeight": 5,
+                    "shippingRef1": event["body-json"]["name"],
+                    "shippingRef2": event["body-json"]["makeandmodel"],
+                    "shippingRef3": "My Ref 3",
+                    "customsValue": None,
+                    "deliveryInstructions": event["body-json"]["delivery instruction"],
+                    "parcelDescription": "",
+                    "liabilityValue": None,
+                    "liability": None
+                },
+                {
+                    "consignmentNumber": None,
+                    "consignmentRef": None,
+                    "parcel": [],
+                    "collectionDetails": {
+                        "contactDetails": {
+                            "contactName": "##########",
+                            "telephone": "##########"
+                        },
+                        "address": {
+                            "organisation": ".",
+                            "countryCode": "GB",
+                            "postcode": event["body-json"]["postcode"],
+                            "street": event["body-json"]["street"],
+                            "locality": event["body-json"]["localiy"],
+                            "town": event["body-json"]["town"]
+                        }
+                    },
+                    "deliveryDetails": {
+                        "contactDetails": {
+                            "contactName": "##########",
+                            "telephone": "##########"
+                        },
+                        "address": {
+                            "organisation": "##########",
+                            "countryCode": "##########",
+                            "postcode": "##########",
+                            "street": "##########",
+                            "locality": "##########",
+                            "town": "##########",
+                            "county": "##########"
+                        },
+                        "notificationDetails": {
+                            "email": "##########",
+                            "mobile": "##########"
+                        }
+                    },
+                    "networkCode": "1^42",
+                    "numberOfParcels": 1,
+                    "totalWeight": 15,
+                    "shippingRef1": event["body-json"]["name"],
+                    "shippingRef2": event["body-json"]["makeandmodel"],
+                    "shippingRef3": "My Ref 3",
+                    "customsValue": None,
+                    "deliveryInstructions": ".",
+                    "parcelDescription": "",
+                    "liabilityValue": None,
+                    "liability": False
+                }
+            ]
+        }
+    elif Service == 'Collection':
+        payload = {
+            "jobId": None,
+            "collectionOnDelivery": True,
+            "invoice": None,
+            "collectionDate": date,
+            "consolidate": False,
+            "consignment": [
+                {
+                    "consignmentNumber": None,
+                    "consignmentRef": None,
+                    "parcel": [],
+                    "collectionDetails": {
+                        "contactDetails": {
+                            "contactName": event["body-json"]["name"],
+                            "telephone": phone
+                        },
+                        "address": {
+                            "organisation": ".",
+                            "countryCode": "GB",
+                            "postcode": event["body-json"]["postcode"],
+                            "street": event["body-json"]["street"],
+                            "locality": event["body-json"]["localiy"],
+                            "town": event["body-json"]["town"]
+                        }
+                    },
+                    "deliveryDetails": {
+                        "contactDetails": {
+                            "contactName": "##########",
+                            "telephone": "##########"
+                        },
+                        "address": {
+                            "organisation": "##########",
+                            "countryCode": "##########",
+                            "postcode": "##########",
+                            "street": "##########",
+                            "locality": "##########",
+                            "town": "##########",
+                            "county": "##########"
+                        },
+                        "notificationDetails": {
+                            "email": event["body-json"]["email"],
+                            "mobile": phone
+                        }
+                    },
+                    "networkCode": "1^12",
+                    "numberOfParcels": event["body-json"]["Lables"],
+                    "totalWeight": 15,
+                    "shippingRef1": event["body-json"]["name"],
+                    "shippingRef2": event["body-json"]["makeandmodel"],
+                    "shippingRef3": "My Ref 3",
+                    "customsValue": None,
+                    "deliveryInstructions": event["body-json"]["delivery instruction"],
+                    "parcelDescription": "",
+                    "liabilityValue": None,
+                    "liability": None
+                }
+            ]
+        }
+    elif Service == 'Delivery':
+        payload = {
+            "jobId": None,
+            "collectionOnDelivery": True,
+            "invoice": None,
+            "collectionDate": date,
+            "consolidate": False,
+            "consignment": [
+                {
+                    "consignmentNumber": None,
+                    "consignmentRef": None,
+                    "parcel": [],
+                    "collectionDetails": {
+                        "contactDetails": {
+                            "contactName": "##########",
+                            "telephone": "##########"
+                        },
+                        "address": {
+                            "organisation": "##########",
+                            "countryCode": "##########",
+                            "postcode": "##########",
+                            "street": "##########",
+                            "locality": "##########",
+                            "town": "##########",
+                            "county": "##########"
+
+                        }
+                    },
+                    "deliveryDetails": {
+                        "contactDetails": {
+                            "contactName": event["body-json"]["name"],
+                            "telephone": phone
+                        },
+                        "address": {
+                            "organisation": ".",
+                            "countryCode": "GB",
+                            "postcode": event["body-json"]["postcode"],
+                            "street": event["body-json"]["street"],
+                            "town": event["body-json"]["town"]
+                        },
+                        "notificationDetails": {
+                            "email": event["body-json"]["email"],
+                            "mobile": phone
+                        }
+                    },
+                    "networkCode": "1^12",
+                    "numberOfParcels": event["body-json"]["Lables"],
+                    "totalWeight": 15,
+                    "shippingRef1": event["body-json"]["name"],
+                    "shippingRef2": event["body-json"]["makeandmodel"],
+                    "shippingRef3": "My Ref 3",
+                    "customsValue": None,
+                    "deliveryInstructions": event["body-json"]["delivery instruction"],
+                    "parcelDescription": "",
+                    "liabilityValue": None,
+                    "liability": None
+                }
+            ]
+        }
+
+#  To make sure the last 'if' statement works, we are going to print the payload to make sure it's right.
+    print(payload)
+
+# DPD API only allows one label to be generated per Swap-it service, so we need to repeat this if we want more than one item to be sent. This scenario does not occur with deliveries or collections. You simply need to enter the desired amount of labels to create multiple shipments.
+
+
+    if Service == 'Swap':
+        for x in range(0, event["body-json"]["Lables"]):
+            shipping_headers_D = {'geoSession': geoSession,
+                                  'Content-Type': 'application/json'}
+            shipping_api_url_D = 'https://api.dpd.co.uk/shipping/shipment'
+            shipping_response_D = requests.post(shipping_api_url_D, headers=shipping_headers_D, json=payload)
+
+
+    elif Service != 'Swap':
+         shipping_headers_D = {'geoSession': geoSession,
+                              'Content-Type': 'application/json'}
+        shipping_api_url_D = 'https://api.dpd.co.uk/shipping/shipment'
+        shipping_response_D = requests.post(shipping_api_url_D, headers=shipping_headers_D, json=payload)
+
+    shipping_response_json_D = shipping_response_D.json()
+
+# Now we are going to extract the data from the response.
+
+    print(shipping_response_json_D)
+
+    shipmentId_D = shipping_response_json_D['data']['shipmentId']
+    consolidated_D = shipping_response_json_D['data']['consolidated']
+    consignmentNumber_D = shipping_response_json_D['data']['consignmentDetail'][0]['consignmentNumber']
+    parcelNumbers_D = shipping_response_json_D['data']['consignmentDetail'][0]['parcelNumbers']
+
+    print("shipmentid: ", shipmentId_D, "consolidated: ", consolidated_D, "consignmentNumber : ", consignmentNumber_D,"parcelNumbers:", parcelNumbers_D)
+
+# Now that we have the response and have extracted the data, we will be moving on to send the data to our CRM system, but first we need to get our access token; we will be doing this below.
+
+    url_token = "****your url_token*****"
+    headers_token = {
+        'Cookie': 'b266a5bf57=a711b6da0e6cbadb5e254290f114a026; iamcsr=1383a75c-689d-42de-9d7c-a20681fa117a; _zcsr_tmp=1383a75c-689d-42de-9d7c-a20681fa117a; JSESSIONID=64A54425B2F4E3BC15E3B90C7FAA9FDF'
+    }
+
+    response_token = requests.request("POST", url_token, headers=headers_token, )
+
+    response_token_json = response_token.json()
+
+    access_token = response_token_json['access_token']
+
+# We must determine what type of record sent the post request from the CRM system, it would either be a lead or a deal. Because we have the record ID; we must be able to determine if the ID should be looked up in the 'leads' module or the 'deals' module so that we can find the original record.
+
+    record = event["body-json"]["record"]
+    if record == "Deal":
+        THE_record = "Deal"
+    elif record == "Lead":
+        THE_record = "Lead"
+
+# Now we have all the data we need, it's time to post a json payload to the CRM.
+    access_token_ready = "Zoho-oauthtoken {}".format(access_token)
+    url_crm = "https://www.zohoapis.com/crm/v2/Shippments"
+    payload_crm = {
+        "data": [
+            {
+                "C_contactName": "##########",
+                "C_locality": "##########",
+                "C_organisation": "##########",
+                "C_postcode": "##########",
+                "c_street": "##########",
+                "C_telephone": "##########",
+                "C_town": "##########",
+                "consignment_number": consignmentNumber_D,
+                "D_contactName": event["body-json"]["name"],
+                "D_locality": event["body-json"]["localiy"],
+                "D_postcode": event["body-json"]["postcode"],
+                "D_street": event["body-json"]["street"],
+                "D_telephone": phone,
+                "D_town": event["body-json"]["town"],
+                "deliveryInstructions": event["body-json"]["delivery instruction"],
+                "Dispatc_Date": date2,
+                "Email1": event["body-json"]["email"],
+                "item": event["body-json"]["makeandmodel"],
+                "Number_of_items": event["body-json"]["Lables"],
+                "Phone_1": phone,
+                "Service": Service,
+                "Name": event["body-json"]["name"],
+                "Stage": "Order",
+                "TRANKER": consolidated_D,
+                THE_record: event["body-json"]["ID"],
+                "Weight_in_kgEdit": 20
+            }
+        ],
+        "trigger": [
+            "approval",
+            "workflow",
+            "blueprint"
+        ]
+    };
+    headers_crm = {
+        'Authorization': access_token_ready,
+        'Content-Type': 'application/json'
+    }
+
+    response_crm = requests.request("POST", url_crm, headers=headers_crm, json=payload_crm)
+    print(response_crm.text.encode('utf8'))
+
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('working!')
+    }
